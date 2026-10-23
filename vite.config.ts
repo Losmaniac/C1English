@@ -3,6 +3,10 @@ import { defineConfig } from 'vitest/config';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  // Relative asset paths so the same build works at "/" (local preview) and at
+  // "/C1English/" (GitHub Pages). The app has no client-side routing, so this
+  // is safe.
+  base: './',
   // The app must contain no network calls at all: no module-preload polyfill,
   // no remote assets, no runtime fetch. Everything ships in the precache.
   build: {

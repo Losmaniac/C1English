@@ -28,7 +28,7 @@ Recorded decisions only. Anything still open is listed at the end.
 | Stack | React 19 + TypeScript (strict) + Vite 8 + `vite-plugin-pwa` 2, hand-written CSS | Decided (repository was empty) |
 | Target devices | Mobile-first responsive web app; installable on supporting browsers | Decided |
 | Offline requirement | Full offline use after first load; all icons, fonts and content bundled | Decided |
-| Hosting | Static build; no deployment configured yet | Open |
+| Hosting | Static build published to GitHub Pages from `main` via GitHub Actions | Decided |
 | Visual style | Calm editorial cards, serif headings, light/dark support, no gamification | Decided |
 
 ## Implementation decisions (engineering)

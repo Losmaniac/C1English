@@ -1,5 +1,12 @@
 # English C1 Practice (offline PWA)
 
+**Live app:** https://losmaniac.github.io/C1English/ — open it on your phone and choose
+*Add to Home screen* / *Install app*. After the first load it works offline.
+
+The build is path-independent (`base: './'`), so the same bundle runs at `/` locally and at
+`/C1English/` on GitHub Pages. `.github/workflows/deploy-pages.yml` runs typecheck, tests, the
+offline guard and the build on every push to `main`, then publishes `dist/` to Pages.
+
 An installable, offline-first practice app for C1 English: advanced grammar, high-value vocabulary,
 collocations, phrasal verbs and idioms, with spaced review and an explanation after every answer.
 
