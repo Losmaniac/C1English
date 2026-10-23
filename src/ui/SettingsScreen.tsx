@@ -143,6 +143,22 @@ export function SettingsScreen({ data, onSettingsChange, onImport, onReset }: Se
           </p>
         </div>
 
+        <div className="field">
+          <label htmlFor="theme-preference">Appearance</label>
+          <select
+            id="theme-preference"
+            value={settings.theme}
+            onChange={(event) => update({ theme: event.target.value as Settings['theme'] })}
+          >
+            <option value="system">Match system</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+          <p className="fine-print">
+            The same switch is available in the header on every screen.
+          </p>
+        </div>
+
         <div className="field field--checkbox">
           <input
             id="czech-notes"

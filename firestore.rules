@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Each learner may read and write only their own progress document.
+// Nothing else in the database is reachable, and no other user's data is
+// readable even by guessing a uid.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

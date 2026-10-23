@@ -10,6 +10,7 @@ const settings: Settings = {
   newItemsPerSession: 2,
   showCzechNotes: true,
   focus: 'all',
+  theme: 'system',
 };
 
 function makeItem(id: string): LearningItem {

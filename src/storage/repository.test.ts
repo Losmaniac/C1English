@@ -135,6 +135,7 @@ describe('sanitising stored data', () => {
       newItemsPerSession: 10,
       showCzechNotes: DEFAULT_SETTINGS.showCzechNotes,
       focus: DEFAULT_SETTINGS.focus,
+      theme: DEFAULT_SETTINGS.theme,
     });
     expect(sanitiseSettings(null)).toEqual(DEFAULT_SETTINGS);
   });
@@ -142,6 +143,27 @@ describe('sanitising stored data', () => {
   it('accepts a valid focus and rejects an unknown one', () => {
     expect(sanitiseSettings({ focus: 'grammar' }).focus).toBe('grammar');
     expect(sanitiseSettings({ focus: 'poetry' }).focus).toBe('all');
+  });
+
+  it('accepts a valid theme and rejects an unknown one', () => {
+    expect(sanitiseSettings({ theme: 'dark' }).theme).toBe('dark');
+    expect(sanitiseSettings({ theme: 'sepia' }).theme).toBe('system');
+  });
+
+  it('migrates version 2 data by adding the theme setting', () => {
+    const version2 = JSON.stringify({
+      schemaVersion: 2,
+      settings: { sessionMinutes: 20, newItemsPerSession: 8, showCzechNotes: true, focus: 'idiom' },
+      reviews: { 'vocab-tenuous': review() },
+      sessions: [],
+    });
+
+    const migrated = parseAppData(version2);
+    expect(migrated?.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(migrated?.settings.theme).toBe('system');
+    expect(migrated?.settings.focus).toBe('idiom');
+    expect(migrated?.settings.sessionMinutes).toBe(20);
+    expect(migrated?.reviews['vocab-tenuous']?.repetitions).toBe(1);
   });
 
   it('migrates version 1 data by adding the focus setting', () => {

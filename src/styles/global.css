@@ -26,8 +26,29 @@
   --tabbar-height: 4.25rem;
 }
 
+/* Forced dark mode: the learner chose Dark in the theme switch. */
+:root[data-theme='dark'] {
+  --paper: #141614;
+  --paper-strong: #1c1f1c;
+  --ink: #ece9e2;
+  --ink-soft: #b8b4a9;
+  --ink-faint: #918d83;
+  --line: #33372f;
+  --accent: #a8c9b8;
+  --accent-ink: #101512;
+  --accent-soft: #26332c;
+  --positive: #8ed4a7;
+  --positive-soft: #1e3025;
+  --negative: #f0a495;
+  --negative-soft: #382220;
+  --focus: #7fb8e8;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* Before the app sets data-theme (first paint, or no JavaScript), follow the
+   operating system so there is never a flash of the wrong theme. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --paper: #141614;
     --paper-strong: #1c1f1c;
     --ink: #ece9e2;
@@ -174,6 +195,47 @@ select {
 .brand__name {
   font-family: var(--font-serif);
   font-size: 1.02rem;
+}
+
+.app-header__tools {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.theme-switch {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper-strong);
+  padding: 0.15rem;
+  gap: 0.1rem;
+}
+
+.theme-switch__button {
+  display: inline-grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.theme-switch__button:hover {
+  color: var(--ink);
+}
+
+.theme-switch__button--active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.theme-switch__icon {
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 .header-stat {

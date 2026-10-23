@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { exercises, learningItems } from './content';
 import { validateContent } from './content/validate';
 import { summariseProgress } from './domain/progress';
 import { buildSession, type SessionPlan } from './domain/session';
 import { scheduleReview } from './domain/srs';
-import type { AnswerAttempt, AppData, SessionRecord, Settings } from './domain/types';
+import type { AnswerAttempt, AppData, ReviewState, SessionRecord, Settings } from './domain/types';
 import { createEmptyData, loadData, saveData } from './storage/repository';
 import { LibraryScreen } from './ui/LibraryScreen';
 import { NavBar, type Tab } from './ui/NavBar';
@@ -12,8 +12,12 @@ import { ProgressScreen } from './ui/ProgressScreen';
 import { SessionScreen } from './ui/SessionScreen';
 import { SettingsScreen } from './ui/SettingsScreen';
 import { SummaryScreen } from './ui/SummaryScreen';
+import { SyncPanel } from './ui/SyncPanel';
+import { ThemeToggle } from './ui/ThemeToggle';
+import { applyTheme } from './ui/theme';
 import { TodayScreen } from './ui/TodayScreen';
 import { UpdatePrompt } from './ui/UpdatePrompt';
+import { useSyncProgress } from './ui/useSyncProgress';
 
 type View = 'today' | 'session' | 'summary' | 'library' | 'progress' | 'settings';
 
@@ -75,6 +79,20 @@ export default function App() {
     setView(next);
   }, []);
 
+  // Merged progress arrives from the sync layer; keep the latest data in a ref
+  // so a merge never writes back a stale snapshot.
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
+  const applyMergedProgress = useCallback(
+    (reviews: Record<string, ReviewState>, sessions: SessionRecord[]) => {
+      commit({ ...dataRef.current, reviews, sessions });
+    },
+    [commit],
+  );
+
+  const sync = useSyncProgress({ data, onRemoteMerge: applyMergedProgress });
+
   const startSession = useCallback(
     (options: StartSessionOptions = {}) => {
       const startedAt = new Date();
@@ -135,8 +153,9 @@ export default function App() {
       setSessionStartedAt(null);
       setNow(finishedAt);
       setView('summary');
+      sync.schedulePush();
     },
-    [commit, data],
+    [commit, data, sync],
   );
 
   const updateSettings = useCallback(
@@ -145,6 +164,25 @@ export default function App() {
     },
     [commit, data],
   );
+
+  const setTheme = useCallback(
+    (theme: Settings['theme']) => {
+      commit({ ...data, settings: { ...data.settings, theme } });
+    },
+    [commit, data],
+  );
+
+  // Apply the chosen theme to <html>, and follow the operating system live
+  // while the preference is "system".
+  useEffect(() => {
+    applyTheme(data.settings.theme);
+
+    if (data.settings.theme !== 'system' || typeof window.matchMedia !== 'function') return;
+    const query = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => applyTheme('system');
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, [data.settings.theme]);
 
   const replaceData = useCallback(
     (incoming: AppData) => {
@@ -206,9 +244,12 @@ export default function App() {
             </span>
             <span className="brand__name">English Practice</span>
           </p>
-          <p className="header-stat" aria-label={`${progress.dueCount} items due for review`}>
-            <strong>{progress.dueCount}</strong> due
-          </p>
+          <div className="app-header__tools">
+            <ThemeToggle value={data.settings.theme} onChange={setTheme} />
+            <p className="header-stat" aria-label={`${progress.dueCount} items due for review`}>
+              <strong>{progress.dueCount}</strong> due
+            </p>
+          </div>
         </div>
       </header>
 
@@ -278,12 +319,23 @@ export default function App() {
         ) : null}
 
         {view === 'settings' ? (
-          <SettingsScreen
-            data={data}
-            onSettingsChange={updateSettings}
-            onImport={replaceData}
-            onReset={resetProgress}
-          />
+          <>
+            <SettingsScreen
+              data={data}
+              onSettingsChange={updateSettings}
+              onImport={replaceData}
+              onReset={resetProgress}
+            />
+            <SyncPanel
+              status={sync.status}
+              user={sync.user}
+              error={sync.error}
+              lastSyncedAt={sync.lastSyncedAt}
+              onSignIn={() => void sync.signIn()}
+              onSignOut={() => void sync.signOut()}
+              onSyncNow={() => void sync.syncNow()}
+            />
+          </>
         ) : null}
       </main>
 

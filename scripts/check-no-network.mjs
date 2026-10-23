@@ -11,6 +11,13 @@ const PROJECT_ROOT = fileURLToPath(new URL('../', import.meta.url));
 const SCAN_DIRS = ['src'];
 const EXTENSIONS = new Set(['.ts', '.tsx', '.css', '.html']);
 
+/**
+ * The app may reach the network in exactly one place: the optional Firebase
+ * sync layer in src/sync/. Anything else, and any AI or analytics SDK, is a
+ * failure. Firebase imports are therefore allowed only under src/sync.
+ */
+const ALLOWED_NETWORK_DIRS = ['src/sync', 'src/ui/useSyncProgress.ts'];
+
 const FORBIDDEN = [
   { pattern: /\bfetch\s*\(/, label: 'fetch() call' },
   { pattern: /XMLHttpRequest/, label: 'XMLHttpRequest' },
@@ -38,13 +45,27 @@ async function* walk(dir) {
 let failures = 0;
 for (const dir of SCAN_DIRS) {
   for await (const file of walk(join(PROJECT_ROOT, dir))) {
+    const relativePath = relative(PROJECT_ROOT, file).replace(/\\/g, '/');
+    const syncAllowed = ALLOWED_NETWORK_DIRS.some((allowed) => relativePath.startsWith(allowed));
     const text = await readFile(file, 'utf8');
+
     text.split(/\r?\n/).forEach((line, index) => {
       for (const rule of FORBIDDEN) {
         if (rule.pattern.test(line)) {
           failures += 1;
-          console.error(`${relative(PROJECT_ROOT, file)}:${index + 1}  ${rule.label}`);
+          console.error(`${relativePath}:${index + 1}  ${rule.label}`);
         }
+      }
+
+      // Firebase must stay inside the sync layer, and must be imported
+      // dynamically so a local-only build never ships or loads it.
+      if (/from\s+['"]firebase\//.test(line) && !syncAllowed) {
+        failures += 1;
+        console.error(`${relativePath}:${index + 1}  firebase import outside src/sync`);
+      }
+      if (/from\s+['"]firebase\//.test(line) && syncAllowed) {
+        failures += 1;
+        console.error(`${relativePath}:${index + 1}  use a dynamic import() for firebase`);
       }
     });
   }

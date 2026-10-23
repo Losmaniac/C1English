@@ -7,8 +7,11 @@ import { MAX_EASE, MAX_INTERVAL_DAYS, MIN_EASE } from '../domain/srs';
 import type { AppData, Category, ReviewState, SessionRecord, Settings } from '../domain/types';
 
 export const STORAGE_KEY = 'english-c1:data';
-/** 1 -> 2 added settings.focus with a migration, so older data still loads. */
-export const SCHEMA_VERSION = 2;
+/**
+ * 1 -> 2 added settings.focus, 2 -> 3 added settings.theme. Each step has a
+ * migration, so older data still loads and nothing is discarded.
+ */
+export const SCHEMA_VERSION = 3;
 
 export const SESSION_MINUTE_OPTIONS = [5, 10, 15, 20] as const;
 export const NEW_ITEM_OPTIONS = [0, 2, 4, 6, 8] as const;
@@ -21,11 +24,14 @@ export const FOCUS_OPTIONS = [
   'phrasal-verb',
 ] as const;
 
+export const THEME_OPTIONS = ['system', 'light', 'dark'] as const;
+
 export const DEFAULT_SETTINGS: Settings = {
   sessionMinutes: 10,
   newItemsPerSession: 4,
   showCzechNotes: true,
   focus: 'all',
+  theme: 'system',
 };
 
 export type LoadStatus = 'fresh' | 'loaded' | 'recovered' | 'unavailable';
@@ -85,6 +91,7 @@ export function sanitiseSettings(value: unknown): Settings {
   if (!isRecord(value)) return { ...DEFAULT_SETTINGS };
   const minutes = SESSION_MINUTE_OPTIONS.find((option) => option === value.sessionMinutes);
   const focus = FOCUS_OPTIONS.find((option) => option === value.focus);
+  const theme = THEME_OPTIONS.find((option) => option === value.theme);
   const newItems = asFiniteNumber(value.newItemsPerSession, DEFAULT_SETTINGS.newItemsPerSession);
   return {
     sessionMinutes: minutes ?? DEFAULT_SETTINGS.sessionMinutes,
@@ -92,6 +99,7 @@ export function sanitiseSettings(value: unknown): Settings {
     showCzechNotes:
       typeof value.showCzechNotes === 'boolean' ? value.showCzechNotes : DEFAULT_SETTINGS.showCzechNotes,
     focus: (focus ?? DEFAULT_SETTINGS.focus) as Category | 'all',
+    theme: theme ?? DEFAULT_SETTINGS.theme,
   };
 }
 
@@ -148,6 +156,15 @@ export function migrate(raw: Record<string, unknown>): Record<string, unknown> |
       ...migrated,
       schemaVersion: 2,
       settings: { ...(isRecord(migrated.settings) ? migrated.settings : {}), focus: 'all' },
+    };
+  }
+
+  if (version < 3) {
+    // Version 2 had no theme setting; follow the system until the learner chooses.
+    migrated = {
+      ...migrated,
+      schemaVersion: 3,
+      settings: { ...(isRecord(migrated.settings) ? migrated.settings : {}), theme: 'system' },
     };
   }
 

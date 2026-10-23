@@ -92,10 +92,50 @@ note. All of it is original, reviewed content compiled into the bundle.
 - Settings → Backup and restore exports/imports a JSON file. Clearing browser data deletes progress
   unless a backup exists.
 
+## Optional cross-device sync (Firebase)
+
+The app works with no account at all. Sign-in is optional and, when it is not configured, the
+Settings screen says so instead of showing buttons that cannot work.
+
+**What is synced:** review dates (`ReviewState`) and session history, in one Firestore document per
+learner: `users/{uid}/state/progress`. **What is not synced:** theme, session length, focus and the
+Czech-note toggle — those are device preferences and stay in `localStorage`.
+
+**Merge rule (deterministic):** per item, the more recently reviewed state wins; ties break by
+repetitions, then lapses, then interval. Sessions are unioned by id. Merging twice gives the same
+result, and both devices end up identical after a sync.
+
+### Enabling it
+
+1. Firebase console → your project → **Add app → Web** and copy the config values.
+2. **Authentication → Sign-in method → Google → Enable**.
+3. **Authentication → Settings → Authorized domains**: add `losmaniac.github.io` (localhost is there
+   by default).
+4. **Firestore Database → Create database** (production mode is fine).
+5. Publish the security rules from `firestore.rules` — each user can touch only their own document:
+   ```
+   firebase deploy --only firestore:rules     # or paste the file into the console
+   ```
+6. Provide the six values to the build:
+   - locally: copy `.env.example` to `.env.local` and fill it in;
+   - GitHub Pages: **Settings → Secrets and variables → Actions → Variables** and add
+     `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`,
+     `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`.
+
+These are public client identifiers, not secrets — access is controlled by the Firestore rules and
+the authorized-domain list. That is why they are build variables rather than repository secrets.
+
+### How it behaves offline
+
+The Firebase SDK is a separate chunk, loaded with a dynamic import only when sync is configured. If
+the chunk cannot be fetched, the app reports a sync error and keeps working locally. Firestore's
+persistent cache queues writes made offline and flushes them when the connection returns.
+
 ## What "no network" means here, precisely
 
 - `npm run check:offline` scans `src/` and fails the check if any `fetch`, `XMLHttpRequest`, axios,
-  analytics snippet, remote URL or AI SDK reference appears.
+  analytics snippet, remote URL or AI SDK reference appears, and it fails if `firebase` is imported
+  anywhere outside `src/sync/` or without a dynamic `import()`.
 - The production bundle was inspected byte by byte: it contains no `fetch(` and no `XMLHttpRequest`
   at all. The module-preload polyfill is disabled for this reason.
 - The only `https://` string in the bundle is React's own error-documentation link

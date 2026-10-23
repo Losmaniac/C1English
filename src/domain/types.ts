@@ -114,6 +114,8 @@ export interface SessionRecord {
   correct: number;
 }
 
+export type ThemePreference = 'system' | 'light' | 'dark';
+
 export interface Settings {
   /** Planned session length in minutes. */
   sessionMinutes: number;
@@ -121,6 +123,8 @@ export interface Settings {
   showCzechNotes: boolean;
   /** Restricts new sessions to one area, or 'all'. */
   focus: Category | 'all';
+  /** Appearance: follow the operating system, or force light/dark. */
+  theme: ThemePreference;
 }
 
 export interface AppData {

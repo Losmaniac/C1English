@@ -24,7 +24,11 @@ Recorded decisions only. Anything still open is listed at the end.
 | Progress metrics | Accuracy, attempts, items practised/learned/mastered, due count, categories, recent sessions | Decided |
 | CEFR claims | Figures labelled as informal practice indicators, never certification | Decided |
 | Data location | Device-only `localStorage`, versioned, with export/import backup | Decided |
-| Accounts / sync / analytics | None; no server, no API, no AI at runtime | Decided |
+| Accounts / sync | Optional Google sign-in with Firebase Auth + Firestore, requested by the learner; still no analytics and no AI | Decided |
+| Synced data | Progress only (review states + session history) in `users/{uid}/state/progress`; device preferences stay local | Decided |
+| Merge rule | Per item: newest `lastReviewedAt` wins, tie-broken by repetitions, lapses, interval; sessions unioned by id | Decided |
+| Theme | System / light / dark switch in the header and in Settings, stored in `settings.theme` (schema v3) | Decided |
+| Sync credentials | Build variables `VITE_FIREBASE_*`, never committed; absent = local-only build | Decided |
 | Stack | React 19 + TypeScript (strict) + Vite 8 + `vite-plugin-pwa` 2, hand-written CSS | Decided (repository was empty) |
 | Target devices | Mobile-first responsive web app; installable on supporting browsers | Decided |
 | Offline requirement | Full offline use after first load; all icons, fonts and content bundled | Decided |

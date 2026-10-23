@@ -12,6 +12,16 @@ export default defineConfig({
   build: {
     modulePreload: { polyfill: false },
     target: 'es2022',
+    rollupOptions: {
+      output: {
+        // The optional sync SDK gets its own chunk, so a local-only build never
+        // downloads it and the service worker can leave it out of the precache.
+        manualChunks: (id: string) =>
+          id.includes('node_modules/firebase') || id.includes('node_modules/@firebase')
+            ? 'sync-firebase'
+            : undefined,
+      },
+    },
   },
   plugins: [
     react(),
@@ -54,6 +64,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+        // Sync needs a connection anyway, so the SDK chunk stays out of the
+        // offline precache: the app itself remains ~420 KiB installed.
+        globIgnores: ['**/sync-firebase-*.js'],
         // No runtime caching of remote origins: the app ships everything it needs.
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
