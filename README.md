@@ -105,7 +105,32 @@ Czech-note toggle — those are device preferences and stay in `localStorage`.
 repetitions, then lapses, then interval. Sessions are unioned by id. Merging twice gives the same
 result, and both devices end up identical after a sync.
 
-### Enabling it
+### This repo's project (already provisioned)
+
+| Item | Value |
+|---|---|
+| Firebase project | `c1english-e3ac9` (display name C1English) |
+| Web app | `1:388845762667:web:87b986f4060a60ce02d92e` |
+| Firestore database | `(default)`, location `europe-west3` |
+| Sign-in provider | Google, enabled |
+| Authorized domains | `localhost`, `c1english-e3ac9.firebaseapp.com`, `c1english-e3ac9.web.app`, `losmaniac.github.io` |
+| Build variables | the six `VITE_FIREBASE_*` GitHub repository variables |
+
+What the CLI did, so it can be repeated on another project:
+
+```bash
+firebase apps:create web "English C1 Practice" --project c1english-e3ac9
+firebase apps:sdkconfig web <appId> --project c1english-e3ac9
+firebase firestore:databases:create "(default)" --location europe-west3 --project c1english-e3ac9
+firebase deploy --only firestore:rules            # uses .firebaserc
+```
+
+The CLI has no command for sign-in providers or authorized domains, so those were set through the
+Identity Toolkit Admin API (`defaultSupportedIdpConfigs/google.com` to check the provider,
+`config?updateMask=authorizedDomains` to allow `losmaniac.github.io`), authenticated with the CLI's
+own stored credentials.
+
+### Enabling it from scratch
 
 1. Firebase console → your project → **Add app → Web** and copy the config values.
 2. **Authentication → Sign-in method → Google → Enable**.

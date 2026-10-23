@@ -29,6 +29,8 @@ Recorded decisions only. Anything still open is listed at the end.
 | Merge rule | Per item: newest `lastReviewedAt` wins, tie-broken by repetitions, lapses, interval; sessions unioned by id | Decided |
 | Theme | System / light / dark switch in the header and in Settings, stored in `settings.theme` (schema v3) | Decided |
 | Sync credentials | Build variables `VITE_FIREBASE_*`, never committed; absent = local-only build | Decided |
+| Firebase project | `c1english-e3ac9`, Firestore `(default)` in `europe-west3`, provisioned with the Firebase CLI | Decided |
+| API key in the bundle | Accepted: it is a public client identifier; Firestore rules are the real control (verified: unauthenticated reads get 403) | Decided |
 | Stack | React 19 + TypeScript (strict) + Vite 8 + `vite-plugin-pwa` 2, hand-written CSS | Decided (repository was empty) |
 | Target devices | Mobile-first responsive web app; installable on supporting browsers | Decided |
 | Offline requirement | Full offline use after first load; all icons, fonts and content bundled | Decided |
