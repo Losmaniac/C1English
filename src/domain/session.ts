@@ -120,7 +120,14 @@ export function buildSession({
     addedNew += 1;
   }
 
-  // 3. "Practise anyway" tops up with the reviews that are closest to due.
+  // 3. A session should be as long as it says: if due work and the new-item
+  // limit leave it short, fill the remaining slots with further new items.
+  for (const item of newItems) {
+    if (chosen.length >= target || maxNew === 0) break;
+    take(item);
+  }
+
+  // 4. "Practise anyway" tops up with the reviews that are closest to due.
   if (ignoreDue) {
     upcomingItems.forEach(take);
   }

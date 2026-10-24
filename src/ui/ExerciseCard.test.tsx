@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { getExercise, getItem } from '../content';
 import type { SessionEntry } from '../domain/session';
 import type { AnswerAttempt } from '../domain/types';
-import { ExerciseCard } from './ExerciseCard';
+import { ExerciseCard, shuffled } from './ExerciseCard';
 
 function entry(exerciseId: string): SessionEntry {
   const exercise = getExercise(exerciseId);
@@ -73,8 +73,10 @@ describe('ExerciseCard — multiple choice', () => {
   it('supports keyboard selection and advancing', async () => {
     const user = userEvent.setup();
     const { onAnswered, onNext } = renderCard('ex-tenuous-choice');
+    // Options are shuffled, so press the number of wherever the right one landed.
+    const position = screen.getAllByRole('radio').findIndex((radio) => /tenuous/i.test(radio.closest('label')?.textContent ?? ''));
 
-    await user.keyboard('1');
+    await user.keyboard(String(position + 1));
     await user.keyboard('{Enter}');
     expect(screen.getByText('Correct.')).toBeInTheDocument();
     expect(onAnswered).toHaveBeenCalledWith(expect.objectContaining({ correct: true }));
@@ -144,5 +146,15 @@ describe('ExerciseCard — typed answers', () => {
     await user.click(screen.getByRole('button', { name: /see session summary/i }));
 
     expect(onNext).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('shuffled', () => {
+  it('keeps every element and does not mutate the input', () => {
+    const input = ['a', 'b', 'c', 'd'] as const;
+    const output = shuffled(input, () => 0);
+    expect([...output].sort()).toEqual([...input]);
+    expect(output).not.toEqual([...input]);
+    expect(input).toEqual(['a', 'b', 'c', 'd']);
   });
 });

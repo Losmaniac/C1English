@@ -28,12 +28,32 @@ function optionLabel(index: number): string {
   return String.fromCharCode(65 + index);
 }
 
+const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window;
+
+function speak(text: string): void {
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-GB';
+  window.speechSynthesis.speak(utterance);
+}
+
+/** Fisher-Yates. Content stores the right answer first, so display order must not leak it. */
+export function shuffled<T>(list: readonly T[], random: () => number = Math.random): T[] {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j] as T, copy[i] as T];
+  }
+  return copy;
+}
+
 export function ExerciseCard({ entry, showCzechNotes, isLast, onAnswered, onNext }: ExerciseCardProps) {
   const { exercise, item } = entry;
   const isChoice = exercise.kind !== 'gap-fill' && exercise.kind !== 'collocation-match';
   const choice = isChoice ? (exercise as ChoiceExercise) : null;
   const gap = isChoice ? null : (exercise as GapFillExercise);
 
+  const [options] = useState(() => (choice ? shuffled(choice.options) : []));
   const [selected, setSelected] = useState<string | null>(null);
   const [typed, setTyped] = useState('');
   const [phase, setPhase] = useState<'answering' | 'feedback'>('answering');
@@ -64,8 +84,9 @@ export function ExerciseCard({ entry, showCzechNotes, isLast, onAnswered, onNext
         return;
       }
 
-      if (choice && !isTyping && /^[1-9]$/.test(event.key)) {
-        const option = choice.options[Number(event.key) - 1];
+      if (choice && !isTyping && !event.ctrlKey && !event.metaKey && !event.altKey && /^[1-9a-i]$/i.test(event.key)) {
+        const key = event.key.toLowerCase();
+        const option = options[/\d/.test(key) ? Number(key) - 1 : key.charCodeAt(0) - 97];
         if (option) {
           event.preventDefault();
           setSelected(option.id);
@@ -83,7 +104,7 @@ export function ExerciseCard({ entry, showCzechNotes, isLast, onAnswered, onNext
 
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [choice, onNext, phase]);
+  }, [choice, onNext, options, phase]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -123,7 +144,7 @@ export function ExerciseCard({ entry, showCzechNotes, isLast, onAnswered, onNext
             {choice.context ? <p className="exercise__context">{choice.context}</p> : null}
             <fieldset className="options" disabled={phase === 'feedback'}>
               <legend className="exercise__prompt">{choice.prompt}</legend>
-              {choice.options.map((option, index) => {
+              {options.map((option, index) => {
                 const isChosen = selected === option.id;
                 const isRight = choice.correctOptionId === option.id;
                 const showRight = phase === 'feedback' && isRight;
@@ -243,7 +264,22 @@ export function ExerciseCard({ entry, showCzechNotes, isLast, onAnswered, onNext
             {item.examples.map((example) => (
               <div key={example}>
                 <dt>Example</dt>
-                <dd>{example}</dd>
+                <dd>
+                  {example}
+                  {canSpeak ? (
+                    <>
+                      {' '}
+                      <button
+                        type="button"
+                        className="link-button"
+                        aria-label={`Listen: ${example}`}
+                        onClick={() => speak(example)}
+                      >
+                        Listen
+                      </button>
+                    </>
+                  ) : null}
+                </dd>
               </div>
             ))}
             {item.commonError ? (

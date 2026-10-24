@@ -96,6 +96,19 @@ describe('buildSession', () => {
     expect(plan.entries.map((entry) => entry.exercise.id)).toEqual(['ex-a-1', 'ex-c-1', 'ex-d-1']);
   });
 
+  it('fills a short session with extra new items so it matches its planned length', () => {
+    const many = Array.from({ length: 20 }, (_, i) => makeItem(`n${i}`));
+    const plan = buildSession({
+      items: many,
+      exercises: many.map((item) => makeExercise(`ex-${item.id}`, item.id)),
+      reviews: {},
+      settings,
+      now: NOW,
+      random: () => 0,
+    });
+    expect(plan.entries).toHaveLength(plannedExerciseCount(settings.sessionMinutes));
+  });
+
   it('never repeats an item within one session', () => {
     const plan = buildSession({ items, exercises, reviews, settings, now: NOW, random: () => 0 });
     const ids = plan.entries.map((entry) => entry.item.id);

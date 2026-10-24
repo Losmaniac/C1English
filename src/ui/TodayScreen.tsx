@@ -34,7 +34,11 @@ export function TodayScreen({
   return (
     <div className="screen">
       <header className="screen__intro">
-        <p className="eyebrow">C1 practice</p>
+        <p className="eyebrow">
+          {progress.streakDays > 0
+            ? `${progress.streakDays}-day streak · ${progress.practisedToday ? 'done for today' : 'practise today to keep it'}`
+            : 'C1 practice'}
+        </p>
         <h1>{greeting(now)}</h1>
         <p className="lede">
           A short session of about {settings.sessionMinutes} minutes: due review first, then a few new
@@ -78,7 +82,7 @@ export function TodayScreen({
           </div>
         )}
         <p className="fine-print">
-          Answers and progress are saved on this device only. No account, no sync.
+          Progress is saved on this device. Sign in under Settings to sync it across devices.
         </p>
       </section>
 

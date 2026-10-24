@@ -119,7 +119,7 @@ export function SettingsScreen({ data, onSettingsChange, onImport, onReset }: Se
               </option>
             ))}
           </select>
-          <p className="fine-print">Due reviews are always scheduled first, then new items up to this limit.</p>
+          <p className="fine-print">Due reviews are always scheduled first, then new items up to this limit. If that leaves the session short, more new items fill it.</p>
         </div>
 
         <div className="field">

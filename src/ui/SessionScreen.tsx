@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { SessionPlan } from '../domain/session';
+import type { SessionEntry, SessionPlan } from '../domain/session';
 import type { AnswerAttempt } from '../domain/types';
 import { ExerciseCard } from './ExerciseCard';
 
@@ -19,18 +19,28 @@ export function SessionScreen({
   onExit,
 }: SessionScreenProps) {
   const [index, setIndex] = useState(0);
+  // A missed question returns once at the end; only first attempts are scheduled.
+  const [queue, setQueue] = useState<{ entry: SessionEntry; retry: boolean }[]>(() =>
+    plan.entries.map((entry) => ({ entry, retry: false })),
+  );
   const attemptsRef = useRef<AnswerAttempt[]>([]);
 
-  const total = plan.entries.length;
-  const entry = plan.entries[index];
+  const total = queue.length;
+  const current = queue[index];
+  const entry = current?.entry;
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [index]);
 
-  const handleAnswered = useCallback((attempt: AnswerAttempt) => {
-    attemptsRef.current = [...attemptsRef.current, attempt];
-  }, []);
+  const handleAnswered = useCallback(
+    (attempt: AnswerAttempt) => {
+      if (!current || current.retry) return;
+      attemptsRef.current = [...attemptsRef.current, attempt];
+      if (!attempt.correct) setQueue((list) => [...list, { entry: current.entry, retry: true }]);
+    },
+    [current],
+  );
 
   const handleNext = useCallback(() => {
     if (index >= total - 1) {
@@ -42,12 +52,14 @@ export function SessionScreen({
 
   const handleExit = useCallback(() => {
     const answered = attemptsRef.current.length;
-    const message =
-      answered === 0
-        ? 'Leave this session? Nothing has been answered yet.'
-        : `End this session? ${answered} answered question(s) will be discarded and will not affect your review schedule.`;
-    if (window.confirm(message)) onExit();
-  }, [onExit]);
+    if (answered === 0) {
+      if (window.confirm('Leave this session? Nothing has been answered yet.')) onExit();
+      return;
+    }
+    if (window.confirm(`End this session now? Your ${answered} answer${answered === 1 ? '' : 's'} so far will be saved.`)) {
+      onComplete(attemptsRef.current, startedAt);
+    }
+  }, [onComplete, onExit, startedAt]);
 
   if (!entry) {
     return (
@@ -69,6 +81,7 @@ export function SessionScreen({
         <div className="session-header__row">
           <p className="eyebrow">
             Question {index + 1} of {total}
+            {current?.retry ? ' · second try' : ''}
           </p>
           <button type="button" className="link-button" onClick={handleExit}>
             End session

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { itemStatus, summariseProgress } from './progress';
+import { computeStreak, itemStatus, summariseProgress } from './progress';
 import type { LearningItem, ReviewState, SessionRecord } from './types';
 
 const NOW = new Date('2026-03-02T09:00:00.000Z');
@@ -117,5 +117,24 @@ describe('summariseProgress', () => {
     expect(summary.attempts).toBe(0);
     expect(summary.troubleSpots).toEqual([]);
     expect(summary.recentSessions).toEqual([]);
+  });
+});
+
+describe('computeStreak', () => {
+  const at = (y: number, m: number, d: number, h = 12) => new Date(y, m, d, h).toISOString();
+  const session = (finishedAt: string) => ({ id: finishedAt, startedAt: finishedAt, finishedAt, exerciseIds: [], attempted: 1, correct: 1 });
+  const now = new Date(2026, 9, 24, 20);
+
+  it('counts consecutive days ending today', () => {
+    const sessions = [at(2026, 9, 22), at(2026, 9, 23), at(2026, 9, 24, 8), at(2026, 9, 24, 9)].map(session);
+    expect(computeStreak(sessions, now)).toEqual({ streakDays: 3, practisedToday: true });
+  });
+
+  it("keeps yesterday's streak alive until today ends, and breaks on a gap", () => {
+    expect(computeStreak([at(2026, 9, 20), at(2026, 9, 22), at(2026, 9, 23)].map(session), now)).toEqual({
+      streakDays: 2,
+      practisedToday: false,
+    });
+    expect(computeStreak([at(2026, 9, 21)].map(session), now).streakDays).toBe(0);
   });
 });

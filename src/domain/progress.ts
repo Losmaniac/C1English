@@ -29,11 +29,31 @@ export interface ProgressSummary {
   accuracyLast7Days: number;
   categories: CategoryProgress[];
   recentSessions: readonly SessionRecord[];
+  /** Consecutive local days with a session, ending today (or yesterday, if today is still open). */
+  streakDays: number;
+  practisedToday: boolean;
   /** Items missed at least once, most troublesome first. */
   troubleSpots: readonly TroubleSpot[];
 }
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+function localDayKey(date: Date): string {
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
+export function computeStreak(sessions: readonly SessionRecord[], now: Date): { streakDays: number; practisedToday: boolean } {
+  const days = new Set(sessions.map((session) => localDayKey(new Date(session.finishedAt))));
+  const practisedToday = days.has(localDayKey(now));
+  const cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (!practisedToday) cursor.setDate(cursor.getDate() - 1);
+  let streakDays = 0;
+  while (days.has(localDayKey(cursor))) {
+    streakDays += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return { streakDays, practisedToday };
+}
 
 export function summariseProgress(
   items: readonly LearningItem[],
@@ -103,6 +123,7 @@ export function summariseProgress(
     accuracyLast7Days: attemptsLast7Days === 0 ? 0 : correctLast7Days / attemptsLast7Days,
     categories,
     recentSessions: [...sessions].slice(-5).reverse(),
+    ...computeStreak(sessions, now),
     troubleSpots,
   };
 }

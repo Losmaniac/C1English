@@ -47,7 +47,10 @@ src/
 1. **Today** shows what is due, how many items have never been practised, and a note on how much is
    stored locally. The counts follow your current focus area.
 2. **Start session** builds a queue: due reviews first (earliest first), then up to the configured
-   number of new items. Session length is `max(5, round(minutes × 1.1))` questions.
+   number of new items; if that leaves the session short, more new items fill it. Session length is
+   `max(5, round(minutes × 1.1))` questions. Answer options are shuffled every time.
+   A missed question comes back once at the end of the session (only the first try is scheduled),
+   and ending a session early saves the answers given so far.
 3. **Each question** is answered by selection or by typing (typed answers are compared after safe
    normalisation and against an explicit list of accepted answers).
 4. **Feedback** states whether the answer is right, gives the answer key, explains why, and shows the
@@ -65,7 +68,7 @@ src/
 
 | Key | Action |
 |---|---|
-| `1`–`9` | Select the corresponding option (choice questions) |
+| `1`–`9` or `A`–`I` | Select the corresponding option (choice questions) |
 | `Enter` | Check the answer; after feedback, go to the next question |
 | `n` | Next question after feedback |
 

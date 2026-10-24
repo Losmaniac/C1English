@@ -32,7 +32,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /start a 10-minute session/i }));
 
     let answered = 0;
-    for (let guard = 0; guard < 15; guard += 1) {
+    for (let guard = 0; guard < 30; guard += 1) {
       if (!screen.queryByRole('button', { name: /check answer/i })) break;
 
       const textbox = screen.queryByRole('textbox');
@@ -51,7 +51,8 @@ describe('App', () => {
       await user.click(screen.getByRole('button', { name: /next question|see session summary/i }));
     }
 
-    expect(answered).toBe(4);
+    // 11 questions for 10 minutes, plus a second try for each one missed.
+    expect(answered).toBeGreaterThanOrEqual(11);
     expect(screen.getByText(/session complete/i)).toBeInTheDocument();
 
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as {
@@ -59,13 +60,13 @@ describe('App', () => {
       sessions: Array<{ attempted: number }>;
     };
     expect(stored.sessions).toHaveLength(1);
-    expect(stored.sessions[0]?.attempted).toBe(4);
-    expect(Object.keys(stored.reviews)).toHaveLength(4);
+    expect(stored.sessions[0]?.attempted).toBe(11);
+    expect(Object.keys(stored.reviews)).toHaveLength(11);
 
     // Reopening the app must read the same data back from local storage.
     first.unmount();
     render(<App />);
-    expect(screen.getByText(/out of 4 answers/i)).toBeInTheDocument();
+    expect(screen.getByText(/out of 11 answers/i)).toBeInTheDocument();
     expect(screen.getByText(/learned of 104/i)).toBeInTheDocument();
   });
 

@@ -1085,17 +1085,11 @@ select {
 
 @media (max-width: 420px) {
   .stat-row {
-    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
 
   .stat {
-    display: flex;
-    align-items: baseline;
-    gap: 0.6rem;
-  }
-
-  .stat__label {
-    margin: 0;
+    padding: 0.6rem 0.55rem;
   }
 }
 
