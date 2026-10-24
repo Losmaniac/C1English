@@ -109,6 +109,15 @@ describe('buildSession', () => {
     expect(plan.entries).toHaveLength(plannedExerciseCount(settings.sessionMinutes));
   });
 
+  it("prefers the item's least recently seen exercise", () => {
+    const run = (history: { exerciseIds: string[] }[]) =>
+      buildSession({ items, exercises, reviews, settings, now: NOW, history, onlyItemIds: ['a'], random: () => 0 })
+        .entries[0]?.exercise.id;
+    expect(run([{ exerciseIds: ['ex-a-1'] }])).toBe('ex-a-2');
+    expect(run([{ exerciseIds: ['ex-a-2'] }, { exerciseIds: ['ex-a-1'] }])).toBe('ex-a-2');
+    expect(run([{ exerciseIds: ['ex-a-1'] }, { exerciseIds: ['ex-a-2'] }])).toBe('ex-a-1');
+  });
+
   it('never repeats an item within one session', () => {
     const plan = buildSession({ items, exercises, reviews, settings, now: NOW, random: () => 0 });
     const ids = plan.entries.map((entry) => entry.item.id);

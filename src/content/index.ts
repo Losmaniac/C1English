@@ -19,6 +19,8 @@ import {
 } from './grammarModals';
 import { grammarReferenceExercises, grammarReferenceItems } from './grammarReference';
 import { idiomExercises, idiomItems } from './idioms';
+import { secondExercises } from './secondExercises';
+import { secondExercisesPartTwo } from './secondExercisesPartTwo';
 import {
   idiomAdvancedExercises,
   idiomAdvancedExercisesPartFour,
@@ -77,6 +79,8 @@ export const exercises: readonly Exercise[] = [
   ...idiomAdvancedExercisesPartTwo,
   ...idiomAdvancedExercisesPartThree,
   ...idiomAdvancedExercisesPartFour,
+  ...secondExercises,
+  ...secondExercisesPartTwo,
 ];
 
 const itemsById = new Map(learningItems.map((item) => [item.id, item]));

@@ -68,7 +68,8 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByText(/out of 11 answers/i)).toBeInTheDocument();
     expect(screen.getByText(/learned of 104/i)).toBeInTheDocument();
-  });
+    // A full simulated session types every answer key by key, so it needs more than the default 5 s.
+  }, 30_000);
 
   it('changes the session length and keeps it after reopening', async () => {
     const user = userEvent.setup();

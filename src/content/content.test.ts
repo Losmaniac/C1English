@@ -49,7 +49,7 @@ describe('learning content integrity', () => {
 
   it('exposes stable content counts and keeps lookups working', () => {
     expect(learningItems).toHaveLength(104);
-    expect(exercises).toHaveLength(106);
+    expect(exercises).toHaveLength(208);
     expect(getExercise('ex-tenuous-choice')?.itemId).toBe('vocab-tenuous');
     expect(getExercise('missing-exercise')).toBeUndefined();
     expect(getItem('missing-item')).toBeUndefined();
@@ -68,6 +68,14 @@ describe('learning content integrity', () => {
     for (const item of learningItems) {
       const related = exercises.filter((exercise) => exercise.itemId === item.id);
       expect(related.length, `${item.category}: ${item.id}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('gives every item two exercises in different formats, so reviews vary', () => {
+    for (const item of learningItems) {
+      const related = exercises.filter((exercise) => exercise.itemId === item.id);
+      expect(related.length, item.id).toBeGreaterThanOrEqual(2);
+      expect(new Set(related.map(isChoiceExercise)).size, item.id).toBe(2);
     }
   });
 

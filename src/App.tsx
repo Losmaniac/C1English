@@ -106,6 +106,7 @@ export default function App() {
         ignoreDue: options.ignoreDue ?? false,
         categories: focus === 'all' ? undefined : [focus],
         onlyItemIds: options.onlyItemIds,
+        history: data.sessions,
       });
 
       if (nextPlan.entries.length === 0) {
@@ -120,7 +121,7 @@ export default function App() {
       setNow(startedAt);
       setView('session');
     },
-    [data.reviews, data.settings],
+    [data.reviews, data.sessions, data.settings],
   );
 
   const completeSession = useCallback(

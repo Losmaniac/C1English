@@ -51,6 +51,7 @@ src/
    `max(5, round(minutes × 1.1))` questions. Answer options are shuffled every time.
    A missed question comes back once at the end of the session (only the first try is scheduled),
    and ending a session early saves the answers given so far.
+   Every item has a choice exercise and a typed one; a review shows the one seen least recently.
 3. **Each question** is answered by selection or by typing (typed answers are compared after safe
    normalisation and against an explicit list of accepted answers).
 4. **Feedback** states whether the answer is right, gives the answer key, explains why, and shows the
@@ -76,11 +77,11 @@ src/
 
 | Area | Items | Exercises |
 |---|---|---|
-| Grammar | 31 | 32 |
-| Vocabulary | 29 | 25 |
-| Collocations | 24 | 24 |
-| Idioms and phrasal verbs | 20 | 20 |
-| **Total** | **104** | **106** |
+| Grammar | 31 | 62 |
+| Vocabulary | 29 | 58 |
+| Collocations | 24 | 48 |
+| Idioms and phrasal verbs | 20 | 40 |
+| **Total** | **104** | **208** |
 
 Every item carries a meaning, two or three natural examples, a "Watch out" note on the common error,
 collocations or patterns where they matter, a register label, and occasionally a Czech-interference

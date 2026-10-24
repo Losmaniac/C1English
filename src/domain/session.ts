@@ -37,6 +37,8 @@ export interface BuildSessionArgs {
   categories?: readonly Category[];
   /** Restrict the session to exactly these items (used for trouble spots). */
   onlyItemIds?: readonly string[];
+  /** Past sessions: an item's least recently seen exercise is preferred, so reviews vary. */
+  history?: readonly { exerciseIds: readonly string[] }[];
   random?: () => number;
 }
 
@@ -55,8 +57,12 @@ export function buildSession({
   ignoreDue = false,
   categories,
   onlyItemIds,
+  history = [],
   random = Math.random,
 }: BuildSessionArgs): SessionPlan {
+  const lastSeen = new Map<string, number>();
+  history.forEach((session, index) => session.exerciseIds.forEach((id) => lastSeen.set(id, index)));
+
   const only = onlyItemIds ? new Set(onlyItemIds) : null;
   const allowedCategories = categories && categories.length > 0 ? new Set(categories) : null;
 
@@ -134,8 +140,10 @@ export function buildSession({
 
   const entries: SessionEntry[] = [];
   for (const item of chosen) {
-    const candidates = exercisesByItem.get(item.id);
-    if (!candidates || candidates.length === 0) continue;
+    const all = exercisesByItem.get(item.id);
+    if (!all || all.length === 0) continue;
+    const oldest = Math.min(...all.map((exercise) => lastSeen.get(exercise.id) ?? -1));
+    const candidates = all.filter((exercise) => (lastSeen.get(exercise.id) ?? -1) === oldest);
     const index = Math.min(Math.floor(random() * candidates.length), candidates.length - 1);
     const exercise = candidates[index];
     if (exercise) entries.push({ exercise, item });
